@@ -1,40 +1,40 @@
 //your JS code here. If required.
-// Function to generate a random number between 1 and 10
-function getRandomNumber() {
-    return Math.floor(Math.random() * 10) + 1;
-}
+document.addEventListener("DOMContentLoaded", () => {
+    const outputDiv = document.getElementById('output');
 
-// Function to simulate an asynchronous operation with a 50% chance of success or failure
-function simulateAsyncOperation() {
-    return new Promise((resolve, reject) => {
-        // Simulate a 50% chance of success or failure
-        const isSuccess = Math.random() > 0.5;
+    // Function to create a promise with a 50% chance of rejection
+    function createPromise() {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                const randomNumber = Math.floor(Math.random() * 10) + 1;
+                if (Math.random() < 0.5) {
+                    resolve(randomNumber);
+                } else {
+                    reject(new Error(`Promise rejected with error`));
+                }
+            }, 1000); // Simulating an asynchronous operation with a delay of 1 second
+        });
+    }
 
-        if (isSuccess) {
-            resolve(getRandomNumber());
-        } else {
-            reject(new Error("Random error occurred"));
-        }
-    });
-}
+    // Array of promises
+    const promises = Array.from({ length: 5 }, createPromise);
 
-// Create an array of 5 promises
-const promises = Array.from({ length: 5 }, (_, index) => simulateAsyncOperation().then(
-    result => ({ result }),
-    error => ({ error })
-));
-
-// Use Promise.all to wait for all promises to settle
-Promise.all(promises)
+    // Using Promise.all to wait for all promises to settle
+    Promise.all(promises.map((promise, index) => {
+        return promise
+            .then(result => ({ result }))
+            .catch(error => ({ error, index }));
+    }))
     .then(results => {
-        // Log the results or errors
-        const outputDiv = document.getElementById('output');
-
-        results.forEach((result, index) => {
-            if (result.result) {
-                outputDiv.innerHTML += `<p>Promise ${index + 1} resolved with result: ${result.result}</p>`;
+        // Display results or errors in the output div
+        results.forEach(item => {
+            const p = document.createElement('p');
+            if (item.result) {
+                p.textContent = `Promise ${item.index + 1} resolved with result: ${item.result}`;
             } else {
-                outputDiv.innerHTML += `<p>Promise ${index + 1} rejected with error: ${result.error.message}</p>`;
+                p.textContent = `Promise ${item.index + 1} rejected with error: ${item.error.message}`;
             }
+            outputDiv.appendChild(p);
         });
     });
+});
